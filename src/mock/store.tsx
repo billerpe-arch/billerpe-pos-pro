@@ -197,7 +197,10 @@ interface Ctx extends State {
   startTakeAway: () => string;
   addLine: (orderId: string, input: AddLineInput) => void;
   changeQty: (orderId: string, lineId: string, delta: number) => void;
+  setLineQty: (orderId: string, lineId: string, qty: number) => void;
+  setLineNote: (orderId: string, lineId: string, note: string) => void;
   removeLine: (orderId: string, lineId: string) => void;
+
   holdOrder: (orderId: string) => void;
   saveOrder: (orderId: string) => void;
   cancelOrder: (orderId: string) => void;
