@@ -25,10 +25,9 @@ import { Route as ShellMenuCategoriesRouteImport } from './routes/_shell.menu.ca
 import { Route as ShellMenuItemsRouteImport } from './routes/_shell.menu.items'
 import { Route as ShellMenuVariantsRouteImport } from './routes/_shell.menu.variants'
 import { Route as ShellOperationsIndexRouteImport } from './routes/_shell.operations.index'
+import { Route as ShellOperationsSectionRouteImport } from './routes/_shell.operations.$section'
 import { Route as ShellOperationsApprovalMatrixRouteImport } from './routes/_shell.operations.approval-matrix'
 import { Route as ShellOperationsDeliveryChargeRouteImport } from './routes/_shell.operations.delivery-charge'
-import { Route as ShellOperationsDisplayRouteImport } from './routes/_shell.operations.display'
-import { Route as ShellOperationsPrintersRouteImport } from './routes/_shell.operations.printers'
 import { Route as ShellOrdersIndexRouteImport } from './routes/_shell.orders.index'
 import { Route as ShellOrdersOrderIdRouteImport } from './routes/_shell.orders.$orderId'
 import { Route as ShellReportsIndexRouteImport } from './routes/_shell.reports.index'
@@ -124,6 +123,11 @@ const ShellOperationsIndexRoute = ShellOperationsIndexRouteImport.update({
   path: '/operations/',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellOperationsSectionRoute = ShellOperationsSectionRouteImport.update({
+  id: '/operations/$section',
+  path: '/operations/$section',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellOperationsApprovalMatrixRoute =
   ShellOperationsApprovalMatrixRouteImport.update({
     id: '/operations/approval-matrix',
@@ -136,16 +140,6 @@ const ShellOperationsDeliveryChargeRoute =
     path: '/operations/delivery-charge',
     getParentRoute: () => ShellRoute,
   } as any)
-const ShellOperationsDisplayRoute = ShellOperationsDisplayRouteImport.update({
-  id: '/operations/display',
-  path: '/operations/display',
-  getParentRoute: () => ShellRoute,
-} as any)
-const ShellOperationsPrintersRoute = ShellOperationsPrintersRouteImport.update({
-  id: '/operations/printers',
-  path: '/operations/printers',
-  getParentRoute: () => ShellRoute,
-} as any)
 const ShellOrdersIndexRoute = ShellOrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -239,10 +233,9 @@ export interface FileRoutesByFullPath {
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
   '/menu/variants': typeof ShellMenuVariantsRoute
+  '/operations/$section': typeof ShellOperationsSectionRoute
   '/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
-  '/operations/display': typeof ShellOperationsDisplayRoute
-  '/operations/printers': typeof ShellOperationsPrintersRoute
   '/orders/$orderId': typeof ShellOrdersOrderIdRoute
   '/reports/$reportId': typeof ShellReportsReportIdRoute
   '/stock/$section': typeof ShellStockSectionRoute
@@ -275,10 +268,9 @@ export interface FileRoutesByTo {
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
   '/menu/variants': typeof ShellMenuVariantsRoute
+  '/operations/$section': typeof ShellOperationsSectionRoute
   '/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
-  '/operations/display': typeof ShellOperationsDisplayRoute
-  '/operations/printers': typeof ShellOperationsPrintersRoute
   '/orders/$orderId': typeof ShellOrdersOrderIdRoute
   '/reports/$reportId': typeof ShellReportsReportIdRoute
   '/stock/$section': typeof ShellStockSectionRoute
@@ -313,10 +305,9 @@ export interface FileRoutesById {
   '/_shell/menu/categories': typeof ShellMenuCategoriesRoute
   '/_shell/menu/items': typeof ShellMenuItemsRoute
   '/_shell/menu/variants': typeof ShellMenuVariantsRoute
+  '/_shell/operations/$section': typeof ShellOperationsSectionRoute
   '/_shell/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/_shell/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
-  '/_shell/operations/display': typeof ShellOperationsDisplayRoute
-  '/_shell/operations/printers': typeof ShellOperationsPrintersRoute
   '/_shell/orders/$orderId': typeof ShellOrdersOrderIdRoute
   '/_shell/reports/$reportId': typeof ShellReportsReportIdRoute
   '/_shell/stock/$section': typeof ShellStockSectionRoute
@@ -351,10 +342,9 @@ export interface FileRouteTypes {
     | '/menu/categories'
     | '/menu/items'
     | '/menu/variants'
+    | '/operations/$section'
     | '/operations/approval-matrix'
     | '/operations/delivery-charge'
-    | '/operations/display'
-    | '/operations/printers'
     | '/orders/$orderId'
     | '/reports/$reportId'
     | '/stock/$section'
@@ -387,10 +377,9 @@ export interface FileRouteTypes {
     | '/menu/categories'
     | '/menu/items'
     | '/menu/variants'
+    | '/operations/$section'
     | '/operations/approval-matrix'
     | '/operations/delivery-charge'
-    | '/operations/display'
-    | '/operations/printers'
     | '/orders/$orderId'
     | '/reports/$reportId'
     | '/stock/$section'
@@ -424,10 +413,9 @@ export interface FileRouteTypes {
     | '/_shell/menu/categories'
     | '/_shell/menu/items'
     | '/_shell/menu/variants'
+    | '/_shell/operations/$section'
     | '/_shell/operations/approval-matrix'
     | '/_shell/operations/delivery-charge'
-    | '/_shell/operations/display'
-    | '/_shell/operations/printers'
     | '/_shell/orders/$orderId'
     | '/_shell/reports/$reportId'
     | '/_shell/stock/$section'
@@ -566,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellOperationsIndexRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/operations/$section': {
+      id: '/_shell/operations/$section'
+      path: '/operations/$section'
+      fullPath: '/operations/$section'
+      preLoaderRoute: typeof ShellOperationsSectionRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/operations/approval-matrix': {
       id: '/_shell/operations/approval-matrix'
       path: '/operations/approval-matrix'
@@ -578,20 +573,6 @@ declare module '@tanstack/react-router' {
       path: '/operations/delivery-charge'
       fullPath: '/operations/delivery-charge'
       preLoaderRoute: typeof ShellOperationsDeliveryChargeRouteImport
-      parentRoute: typeof ShellRoute
-    }
-    '/_shell/operations/display': {
-      id: '/_shell/operations/display'
-      path: '/operations/display'
-      fullPath: '/operations/display'
-      preLoaderRoute: typeof ShellOperationsDisplayRouteImport
-      parentRoute: typeof ShellRoute
-    }
-    '/_shell/operations/printers': {
-      id: '/_shell/operations/printers'
-      path: '/operations/printers'
-      fullPath: '/operations/printers'
-      preLoaderRoute: typeof ShellOperationsPrintersRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/orders/': {
@@ -715,10 +696,9 @@ interface ShellRouteChildren {
   ShellMenuCategoriesRoute: typeof ShellMenuCategoriesRoute
   ShellMenuItemsRoute: typeof ShellMenuItemsRoute
   ShellMenuVariantsRoute: typeof ShellMenuVariantsRoute
+  ShellOperationsSectionRoute: typeof ShellOperationsSectionRoute
   ShellOperationsApprovalMatrixRoute: typeof ShellOperationsApprovalMatrixRoute
   ShellOperationsDeliveryChargeRoute: typeof ShellOperationsDeliveryChargeRoute
-  ShellOperationsDisplayRoute: typeof ShellOperationsDisplayRoute
-  ShellOperationsPrintersRoute: typeof ShellOperationsPrintersRoute
   ShellOrdersOrderIdRoute: typeof ShellOrdersOrderIdRoute
   ShellReportsReportIdRoute: typeof ShellReportsReportIdRoute
   ShellStockSectionRoute: typeof ShellStockSectionRoute
@@ -750,10 +730,9 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellMenuCategoriesRoute: ShellMenuCategoriesRoute,
   ShellMenuItemsRoute: ShellMenuItemsRoute,
   ShellMenuVariantsRoute: ShellMenuVariantsRoute,
+  ShellOperationsSectionRoute: ShellOperationsSectionRoute,
   ShellOperationsApprovalMatrixRoute: ShellOperationsApprovalMatrixRoute,
   ShellOperationsDeliveryChargeRoute: ShellOperationsDeliveryChargeRoute,
-  ShellOperationsDisplayRoute: ShellOperationsDisplayRoute,
-  ShellOperationsPrintersRoute: ShellOperationsPrintersRoute,
   ShellOrdersOrderIdRoute: ShellOrdersOrderIdRoute,
   ShellReportsReportIdRoute: ShellReportsReportIdRoute,
   ShellStockSectionRoute: ShellStockSectionRoute,

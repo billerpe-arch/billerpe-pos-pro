@@ -153,6 +153,9 @@ export interface Customer {
   phone: string;
   orders: number;
   lastVisit: string;
+  gstin?: string;
+  address?: string;
+  active?: boolean;
 }
 
 export type ReservationStatus =
@@ -414,6 +417,11 @@ export interface Printer {
   role: "Bill" | "KOT" | "Both";
   categories: string[];
   status: "Ready" | "Offline" | "Paper Out";
+  size?: "80mm" | "58mm" | "A4";
+  copies?: number;
+  printType?: "KOT" | "Invoice";
+  orderTypes?: OpsOrderType[];
+  tableIds?: string[];
 }
 
 export interface SyncItem {
@@ -465,4 +473,99 @@ export interface ApprovalRule {
   enabled: boolean;
   locked: boolean;
   note?: string;
+}
+
+/* ---------------- operations module ---------------- */
+
+export type OpsOrderType = "Dine-in" | "Pickup";
+
+export interface ServiceChargeRule {
+  active: boolean;
+  type: "percent" | "fixed";
+  value: number;
+  /** "core" = pre-discount subtotal, "total" = post-discount */
+  calculationOn: "core" | "total";
+  autoApply: OpsOrderType[];
+  /** whether GST computes on top of the service charge */
+  taxOnCharge: boolean;
+  condition: "always" | "greater" | "less";
+  threshold: number;
+}
+
+export interface TaxRule {
+  id: string;
+  name: string;
+  value: number;
+  type: "percent" | "fixed";
+  orderTypes: OpsOrderType[];
+  tableCategoryIds: string[];
+  menuCategoryIds: string[];
+  active: boolean;
+}
+
+export type InvoiceLineContent =
+  | "logo"
+  | "outlet-name"
+  | "address"
+  | "gstin"
+  | "fssai"
+  | "upi-qr"
+  | "marketing"
+  | "text";
+
+export interface InvoiceLine {
+  id: string;
+  content: InvoiceLineContent;
+  text?: string;
+  fontSize: number;
+}
+
+export interface InvoiceFormat {
+  /** the real GST master switch for the whole POS */
+  gstCalculation: boolean;
+  gstNo: string;
+  fssaiNo: string;
+  multiLanguage: boolean;
+  upiId: string;
+  header: InvoiceLine[];
+  footer: InvoiceLine[];
+  /** fields present in the source form with no confirmed frontend consumer */
+  unconfirmed: {
+    isTokenOn: boolean;
+    billWithKot: boolean;
+    billWithToken: boolean;
+    saveBehaviour: boolean;
+  };
+}
+
+export interface PromoCode {
+  id: string;
+  name: string;
+  code: string;
+  type: "percent" | "fixed";
+  value: number;
+  active: boolean;
+}
+
+export interface Kitchen {
+  id: string;
+  name: string;
+  menuCategoryIds: string[];
+  tableIds: string[];
+  orderTypes: OpsOrderType[];
+}
+
+export type DueBillStatus = "Due" | "Settled";
+
+export interface DueBill {
+  id: string;
+  billNo: string;
+  customerName: string;
+  mobile: string;
+  date: string;
+  /** ISO-ish day offset used only for the date filters in the prototype */
+  daysAgo: number;
+  amount: number;
+  status: DueBillStatus;
+  settledMode?: "Cash" | "Card" | "UPI";
 }
