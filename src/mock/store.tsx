@@ -3,9 +3,17 @@ import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import * as seed from "./data";
+import * as stockSeed from "./stock-seed";
 import { nowStamp, todayLabel } from "./format";
 import type {
   AppNotification,
+  FranchiseRequisition,
+  ProductionRun,
+  RecipeGroup,
+  RequisitionStatus,
+  StockAdjustment,
+  StockMovement,
+  StockUnit,
   ApprovalRule,
   AuditLog,
   CashSession,
@@ -68,6 +76,11 @@ interface State {
   suppliers: Supplier[];
   purchaseOrders: PurchaseOrder[];
   wastages: Wastage[];
+  units: StockUnit[];
+  stockMovements: StockMovement[];
+  stockAdjustments: StockAdjustment[];
+  productionRuns: ProductionRun[];
+  requisitions: FranchiseRequisition[];
   cashSessions: CashSession[];
   devices: Device[];
   printers: Printer[];
@@ -98,11 +111,16 @@ const initialState: State = {
   expenses: seed.expenses,
   expenseHeads: seed.expenseHeads,
   rawMaterials: seed.rawMaterials,
-  recipes: seed.recipes,
+  recipes: stockSeed.recipes,
   semiFinished: seed.semiFinished,
   suppliers: seed.suppliers,
-  purchaseOrders: seed.purchaseOrders,
+  purchaseOrders: stockSeed.purchaseOrders,
   wastages: seed.wastages,
+  units: stockSeed.units,
+  stockMovements: stockSeed.stockMovements,
+  stockAdjustments: stockSeed.stockAdjustments,
+  productionRuns: stockSeed.productionRuns,
+  requisitions: stockSeed.requisitions,
   cashSessions: seed.pastCashSessions,
   devices: seed.devices,
   printers: seed.printers,
@@ -197,6 +215,31 @@ interface Ctx extends State {
   receivePurchaseOrder: (id: string) => void;
   addWastage: (w: Omit<Wastage, "id">) => void;
   produceSemiFinished: (id: string, batches: number) => void;
+  /* stock module */
+  upsertUnit: (u: StockUnit) => void;
+  savePurchase: (po: PurchaseOrder, opts?: { receive?: boolean }) => void;
+  payPurchaseOrder: (id: string, amount: number) => void;
+  cancelPurchaseOrder: (id: string) => void;
+  poTotals: (po: PurchaseOrder) => { subtotal: number; tax: number; discount: number; grand: number };
+  saveStockCount: (rows: { materialId: string; countedQty: number }[], note?: string) => void;
+  addWastageBatch: (
+    rows: { materialId: string; qty: number; reason: string; notes?: string }[],
+  ) => void;
+  upsertSemiFinished: (sf: SemiFinished) => void;
+  removeSemiFinished: (id: string) => void;
+  recordProduction: (semiId: string, qty: number, notes?: string) => void;
+  semiUnitCost: (semiId: string) => number;
+  upsertRecipe: (r: Recipe) => void;
+  removeRecipe: (id: string) => void;
+  recipeGroupCost: (g: RecipeGroup) => number;
+  createRequisition: (
+    items: { materialId: string; orderedQty: number; unitPrice: number }[],
+    remarks?: string,
+  ) => void;
+  setRequisitionStatus: (id: string, status: RequisitionStatus) => void;
+  setRequisitionQty: (id: string, materialId: string, qty: number) => void;
+  removeRequisition: (id: string) => void;
+  fulfilRequisition: (id: string) => void;
   /* system */
   setConnection: (state: ConnectionState) => void;
   syncNow: () => void;
