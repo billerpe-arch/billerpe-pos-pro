@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Page, PageHeader } from "@/components/kit";
 
-export const Route = createFileRoute("/_shell/table-grid")({
+export const Route = createFileRoute("/_shell/table-grid/")({
   head: () => ({
     meta: [
       { title: "Table Grid · BillerPe" },
