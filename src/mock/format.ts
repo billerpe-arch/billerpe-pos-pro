@@ -24,9 +24,9 @@ export function nowStamp() {
 export function elapsedFrom(stamp: string) {
   const m = stamp.match(/(\d{2}):(\d{2})\s?(am|pm)/i);
   if (!m) return "—";
-  let h = Number(m[1]) % 12;
-  if (m[3].toLowerCase() === "pm") h += 12;
-  const then = h * 60 + Number(m[2]);
+  let h = Number(m[1] ?? 0) % 12;
+  if ((m[3] ?? "").toLowerCase() === "pm") h += 12;
+  const then = h * 60 + Number(m[2] ?? 0);
   const base = 20 * 60 + 15; // demo "now" = 08:15 pm
   const diff = Math.max(0, base - then);
   return diff >= 60 ? `${Math.floor(diff / 60)}h ${diff % 60}m` : `${diff}m`;
@@ -35,10 +35,10 @@ export function elapsedFrom(stamp: string) {
 export function elapsedMinutes(stamp: string) {
   const m = stamp.match(/(\d{2}):(\d{2})\s?(am|pm)/i);
   if (!m) return 0;
-  let h = Number(m[1]) % 12;
-  if (m[3].toLowerCase() === "pm") h += 12;
+  let h = Number(m[1] ?? 0) % 12;
+  if ((m[3] ?? "").toLowerCase() === "pm") h += 12;
   const base = 20 * 60 + 15;
-  return Math.max(0, base - (h * 60 + Number(m[2])));
+  return Math.max(0, base - (h * 60 + Number(m[2] ?? 0)));
 }
 
 export function pct(part: number, total: number) {
