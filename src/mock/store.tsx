@@ -4,9 +4,16 @@ import { toast } from "sonner";
 
 import * as seed from "./data";
 import * as stockSeed from "./stock-seed";
+import * as opsSeed from "./ops-seed";
 import { nowStamp, todayLabel } from "./format";
 import type {
   AppNotification,
+  DueBill,
+  InvoiceFormat,
+  Kitchen,
+  PromoCode,
+  ServiceChargeRule,
+  TaxRule,
   FranchiseRequisition,
   ProductionRun,
   RecipeGroup,
@@ -93,6 +100,15 @@ interface State {
   deliveryCharge: number;
   packagingCharge: number;
   maxOfflineDays: number;
+  /* operations */
+  serviceCharge: ServiceChargeRule;
+  taxRules: TaxRule[];
+  invoiceFormat: InvoiceFormat;
+  promoCodes: PromoCode[];
+  kitchens: Kitchen[];
+  displayMode: "Keyboard" | "Touch";
+  menuImages: boolean;
+  dueBills: DueBill[];
 }
 
 const initialState: State = {
@@ -133,6 +149,14 @@ const initialState: State = {
   deliveryCharge: seed.DELIVERY_SETTINGS.deliveryCharge,
   packagingCharge: seed.DELIVERY_SETTINGS.packagingCharge,
   maxOfflineDays: seed.OFFLINE_SETTINGS.maxOfflineDays,
+  serviceCharge: opsSeed.serviceCharge,
+  taxRules: opsSeed.taxRules,
+  invoiceFormat: opsSeed.invoiceFormat,
+  promoCodes: opsSeed.promoCodes,
+  kitchens: opsSeed.kitchens,
+  displayMode: "Touch",
+  menuImages: true,
+  dueBills: opsSeed.dueBills,
 };
 
 export function lineTotal(l: OrderLine) {
@@ -255,6 +279,23 @@ interface Ctx extends State {
   toggleApprovalRule: (id: string) => void;
   updateApprovalThreshold: (id: string, threshold: string, approver: Role) => void;
   setDeliverySettings: (delivery: number, packaging: number) => void;
+  /* operations */
+  setServiceCharge: (rule: ServiceChargeRule) => void;
+  upsertTaxRule: (rule: TaxRule) => void;
+  removeTaxRule: (id: string) => void;
+  toggleTaxRule: (id: string) => void;
+  setInvoiceFormat: (fmt: InvoiceFormat) => void;
+  setGstCalculation: (on: boolean) => void;
+  upsertPromo: (promo: PromoCode) => void;
+  togglePromo: (id: string) => void;
+  upsertKitchen: (kitchen: Kitchen) => void;
+  removeKitchen: (id: string) => void;
+  removePrinter: (id: string) => void;
+  setDisplayMode: (mode: "Keyboard" | "Touch") => void;
+  setMenuImages: (on: boolean) => void;
+  upsertCustomer: (customer: Customer) => void;
+  toggleCustomer: (id: string) => void;
+  settleDueBills: (ids: string[], mode: "Cash" | "Card" | "UPI") => void;
   setMaxOfflineDays: (days: number) => void;
 }
 
@@ -1744,6 +1785,113 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDeliverySettings: (delivery, packaging) => {
       patch((p) => ({ ...p, deliveryCharge: delivery, packagingCharge: packaging }));
       toast.success("Charge settings saved");
+    },
+    setServiceCharge: (rule) => {
+      patch((p) => ({ ...p, serviceCharge: rule }));
+      toast.success("Service charge rule saved");
+    },
+    upsertTaxRule: (rule) => {
+      patch((p) => ({
+        ...p,
+        taxRules: p.taxRules.some((t) => t.id === rule.id)
+          ? p.taxRules.map((t) => (t.id === rule.id ? rule : t))
+          : [...p.taxRules, { ...rule, id: rule.id || uid("tax") }],
+      }));
+      toast.success("Tax rule saved", { description: rule.name });
+    },
+    removeTaxRule: (id) => {
+      patch((p) => ({ ...p, taxRules: p.taxRules.filter((t) => t.id !== id) }));
+      toast.success("Tax rule removed", {
+        description: "Prototype only — the live delete endpoint needs a backend fix.",
+      });
+    },
+    toggleTaxRule: (id) =>
+      patch((p) => ({
+        ...p,
+        taxRules: p.taxRules.map((t) => (t.id === id ? { ...t, active: !t.active } : t)),
+      })),
+    setInvoiceFormat: (fmt) => {
+      patch((p) => ({ ...p, invoiceFormat: fmt }));
+      toast.success("Invoice format saved");
+    },
+    setGstCalculation: (on) => {
+      patch((p) => ({ ...p, invoiceFormat: { ...p.invoiceFormat, gstCalculation: on } }));
+      toast[on ? "success" : "warning"](
+        on ? "GST calculation enabled" : "GST calculation disabled",
+        {
+          description: on
+            ? "Active tax rules now calculate on bills."
+            : "Configured tax rules will not calculate on bills.",
+        },
+      );
+    },
+    upsertPromo: (promo) => {
+      patch((p) => ({
+        ...p,
+        promoCodes: p.promoCodes.some((x) => x.id === promo.id)
+          ? p.promoCodes.map((x) => (x.id === promo.id ? promo : x))
+          : [...p.promoCodes, { ...promo, id: promo.id || uid("pr") }],
+      }));
+      toast.success("Promo code saved", { description: promo.code });
+    },
+    togglePromo: (id) =>
+      patch((p) => ({
+        ...p,
+        promoCodes: p.promoCodes.map((x) => (x.id === id ? { ...x, active: !x.active } : x)),
+      })),
+    upsertKitchen: (kitchen) => {
+      patch((p) => ({
+        ...p,
+        kitchens: p.kitchens.some((k) => k.id === kitchen.id)
+          ? p.kitchens.map((k) => (k.id === kitchen.id ? kitchen : k))
+          : [...p.kitchens, { ...kitchen, id: kitchen.id || uid("k") }],
+      }));
+      toast.success("Kitchen saved", { description: kitchen.name });
+    },
+    removeKitchen: (id) => {
+      patch((p) => ({ ...p, kitchens: p.kitchens.filter((k) => k.id !== id) }));
+      toast.success("Kitchen removed");
+    },
+    removePrinter: (id) => {
+      patch((p) => ({ ...p, printers: p.printers.filter((x) => x.id !== id) }));
+      toast.success("Printer removed");
+    },
+    setDisplayMode: (mode) => {
+      patch((p) => ({ ...p, displayMode: mode }));
+      toast.success(`${mode} layout applied to this terminal`);
+    },
+    setMenuImages: (on) => {
+      patch((p) => ({ ...p, menuImages: on }));
+      toast.success(on ? "Item grid shows images" : "Item grid shows a compact list");
+    },
+    upsertCustomer: (customer) => {
+      patch((p) => ({
+        ...p,
+        customers: p.customers.some((c) => c.id === customer.id)
+          ? p.customers.map((c) => (c.id === customer.id ? customer : c))
+          : [{ ...customer, id: customer.id || uid("c") }, ...p.customers],
+      }));
+      toast.success("Customer saved", { description: customer.name });
+    },
+    toggleCustomer: (id) =>
+      patch((p) => ({
+        ...p,
+        customers: p.customers.map((c) =>
+          c.id === id ? { ...c, active: c.active === false } : c,
+        ),
+      })),
+    settleDueBills: (ids, mode) => {
+      patch((p) => ({
+        ...p,
+        dueBills: p.dueBills.map((b) =>
+          ids.includes(b.id) && b.status === "Due"
+            ? { ...b, status: "Settled", settledMode: mode }
+            : b,
+        ),
+      }));
+      toast.success(
+        ids.length > 1 ? `${ids.length} bills settled by ${mode}` : `Bill settled by ${mode}`,
+      );
     },
     setMaxOfflineDays: (days) => {
       patch((p) => ({ ...p, maxOfflineDays: days }));
