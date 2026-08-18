@@ -134,29 +134,33 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* rail */}
-      <aside className="sticky top-0 hidden h-screen w-[76px] shrink-0 flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-3 lg:flex">
-        <Link to="/dashboard" className="mb-2 grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground">
-          <span className="text-sm font-bold tracking-tight">BP</span>
+      <aside className="group/aside sticky top-0 z-50 hidden h-screen w-[76px] shrink-0 flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-3 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:w-[220px] lg:flex">
+        <Link to="/dashboard" className="mb-2 flex h-11 w-[60px] items-center justify-center gap-0 overflow-hidden rounded-xl bg-primary px-2 text-primary-foreground transition-all group-hover/aside:w-[196px] group-hover/aside:justify-start group-hover/aside:gap-2">
+          <span className="grid shrink-0 size-7 place-items-center text-sm font-bold tracking-tight">BP</span>
+          <span className="hidden truncate text-sm font-bold tracking-tight group-hover/aside:inline">BillerPe</span>
         </Link>
-        <nav className="flex w-full flex-1 flex-col items-center gap-0.5 overflow-y-auto scrollbar-slim">
+        <nav className="flex w-full flex-1 flex-col items-center gap-0.5 overflow-y-auto overflow-x-hidden px-2 scrollbar-slim group-hover/aside:items-start">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);
             const content = (
               <>
-                <Icon className="size-[18px]" />
-                <span className="text-[10px] font-medium leading-none">{item.code}</span>
+                <Icon className="size-[18px] shrink-0" />
+                <span className="text-[10px] font-medium leading-none group-hover/aside:hidden">{item.code}</span>
+                <span className="hidden truncate text-sm font-medium group-hover/aside:inline">{item.label}</span>
               </>
             );
             const cls = cn(
-              "relative flex w-[60px] flex-col items-center gap-1 rounded-xl px-1 py-2 text-sidebar-foreground transition-colors",
+              "relative flex rounded-xl px-1 py-2 text-sidebar-foreground transition-all",
+              "w-[60px] flex-col items-center gap-1",
+              "group-hover/aside:w-full group-hover/aside:flex-row group-hover/aside:justify-start group-hover/aside:gap-3 group-hover/aside:px-3",
               active
                 ? "bg-sidebar-primary text-sidebar-primary-foreground"
                 : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             );
             if (item.children) {
               return (
-                <div key={item.code} className="relative">
+                <div key={item.code} className="relative w-[60px] group-hover/aside:w-full">
                   <button
                     type="button"
                     aria-label={item.label}
@@ -172,7 +176,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -6 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute left-[68px] top-0 z-50 w-52 rounded-xl border border-border bg-popover p-1.5 shadow-overlay"
+                        className="absolute left-full top-0 z-50 ml-2 w-52 rounded-xl border border-border bg-popover p-1.5 shadow-overlay group-hover/aside:ml-2"
                       >
                         <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                           {item.label}
