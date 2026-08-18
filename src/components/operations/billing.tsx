@@ -1,11 +1,4 @@
-import {
-  BadgePercent,
-  Calculator,
-  FileText,
-  Plus,
-  Receipt,
-  Trash2,
-} from "lucide-react";
+import { Plus, Receipt, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -24,7 +17,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -858,5 +850,3 @@ export function PromoSection() {
     </div>
   );
 }
-
-export const BILLING_ICONS = { Calculator, FileText, BadgePercent, Receipt, DialogTrigger };
