@@ -90,6 +90,14 @@ function TableGridPage() {
 
   const freeTables = store.tables.filter((t) => t.status === "Free");
 
+  const openBiller = (orderId: string) => {
+    if (store.displayMode === "Keyboard") {
+      navigate({ to: "/keyboard-billing/$orderId", params: { orderId } });
+      return;
+    }
+    navigate({ to: "/table-grid/order/$orderId", params: { orderId } });
+  };
+
   const openOrder = (table: RestaurantTable) => {
     if (store.transactionsBlocked) {
       toast.error("Transactions blocked", {
@@ -98,7 +106,7 @@ function TableGridPage() {
       return;
     }
     if (table.orderId) {
-      navigate({ to: "/table-grid/order/$orderId", params: { orderId: table.orderId } });
+      openBiller(table.orderId);
       return;
     }
     setOpenTable(table);
@@ -117,7 +125,7 @@ function TableGridPage() {
               variant="outline"
               onClick={() => {
                 const id = store.startTakeAway();
-                navigate({ to: "/table-grid/order/$orderId", params: { orderId: id } });
+                openBiller(id);
               }}
             >
               <ShoppingBag className="size-4" /> New Pickup
@@ -271,7 +279,7 @@ function TableGridPage() {
                 if (!openTable) return;
                 const id = store.startOrder(openTable.id, guests);
                 setOpenTable(null);
-                navigate({ to: "/table-grid/order/$orderId", params: { orderId: id } });
+                openBiller(id);
               }}
             >
               <Plus className="size-4" /> Start order

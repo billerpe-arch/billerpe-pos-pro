@@ -9,6 +9,7 @@ import {
   Boxes,
   CalendarDays,
   ChefHat,
+  Keyboard,
   CircleHelp,
   LayoutDashboard,
   LogOut,
@@ -50,6 +51,7 @@ interface NavItem {
 export const NAV: NavItem[] = [
   { code: "DSH", label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { code: "BIL", label: "Biller", icon: UtensilsCrossed, to: "/table-grid" },
+  { code: "KBD", label: "Keyboard Billing", icon: Keyboard, to: "/keyboard-billing" },
   { code: "KDS", label: "Kitchen Display", icon: ChefHat, to: "/kds" },
   { code: "ORD", label: "Orders", icon: Receipt, to: "/orders" },
   {
