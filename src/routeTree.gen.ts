@@ -16,7 +16,6 @@ import { Route as ShellDashboardRouteImport } from './routes/_shell.dashboard'
 import { Route as ShellKdsRouteImport } from './routes/_shell.kds'
 import { Route as ShellProfileRouteImport } from './routes/_shell.profile'
 import { Route as ShellReservationsRouteImport } from './routes/_shell.reservations'
-import { Route as ShellTableGridRouteImport } from './routes/_shell.table-grid'
 import { Route as ShellUsersRouteImport } from './routes/_shell.users'
 import { Route as ShellExpenseEntriesRouteImport } from './routes/_shell.expense.entries'
 import { Route as ShellExpenseHeadsRouteImport } from './routes/_shell.expense.heads'
@@ -40,6 +39,7 @@ import { Route as ShellSupportRaiseTicketRouteImport } from './routes/_shell.sup
 import { Route as ShellSystemIndexRouteImport } from './routes/_shell.system.index'
 import { Route as ShellSystemAuditLogRouteImport } from './routes/_shell.system.audit-log'
 import { Route as ShellSystemNotificationsRouteImport } from './routes/_shell.system.notifications'
+import { Route as ShellTableGridIndexRouteImport } from './routes/_shell.table-grid.index'
 import { Route as ShellTablesCategoriesRouteImport } from './routes/_shell.tables.categories'
 import { Route as ShellTablesManageRouteImport } from './routes/_shell.tables.manage'
 import { Route as ShellTableGridOrderOrderIdRouteImport } from './routes/_shell.table-grid.order.$orderId'
@@ -76,11 +76,6 @@ const ShellProfileRoute = ShellProfileRouteImport.update({
 const ShellReservationsRoute = ShellReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
-  getParentRoute: () => ShellRoute,
-} as any)
-const ShellTableGridRoute = ShellTableGridRouteImport.update({
-  id: '/table-grid',
-  path: '/table-grid',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellUsersRoute = ShellUsersRouteImport.update({
@@ -201,6 +196,11 @@ const ShellSystemNotificationsRoute =
     path: '/system/notifications',
     getParentRoute: () => ShellRoute,
   } as any)
+const ShellTableGridIndexRoute = ShellTableGridIndexRouteImport.update({
+  id: '/table-grid/',
+  path: '/table-grid/',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellTablesCategoriesRoute = ShellTablesCategoriesRouteImport.update({
   id: '/tables/categories',
   path: '/tables/categories',
@@ -213,9 +213,9 @@ const ShellTablesManageRoute = ShellTablesManageRouteImport.update({
 } as any)
 const ShellTableGridOrderOrderIdRoute =
   ShellTableGridOrderOrderIdRouteImport.update({
-    id: '/order/$orderId',
-    path: '/order/$orderId',
-    getParentRoute: () => ShellTableGridRoute,
+    id: '/table-grid/order/$orderId',
+    path: '/table-grid/order/$orderId',
+    getParentRoute: () => ShellRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -225,7 +225,6 @@ export interface FileRoutesByFullPath {
   '/kds': typeof ShellKdsRoute
   '/profile': typeof ShellProfileRoute
   '/reservations': typeof ShellReservationsRoute
-  '/table-grid': typeof ShellTableGridRouteWithChildren
   '/users': typeof ShellUsersRoute
   '/expense/entries': typeof ShellExpenseEntriesRoute
   '/expense/heads': typeof ShellExpenseHeadsRoute
@@ -251,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof ShellReportsIndexRoute
   '/stock/': typeof ShellStockIndexRoute
   '/system/': typeof ShellSystemIndexRoute
+  '/table-grid/': typeof ShellTableGridIndexRoute
   '/table-grid/order/$orderId': typeof ShellTableGridOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
@@ -260,7 +260,6 @@ export interface FileRoutesByTo {
   '/kds': typeof ShellKdsRoute
   '/profile': typeof ShellProfileRoute
   '/reservations': typeof ShellReservationsRoute
-  '/table-grid': typeof ShellTableGridRouteWithChildren
   '/users': typeof ShellUsersRoute
   '/expense/entries': typeof ShellExpenseEntriesRoute
   '/expense/heads': typeof ShellExpenseHeadsRoute
@@ -286,6 +285,7 @@ export interface FileRoutesByTo {
   '/reports': typeof ShellReportsIndexRoute
   '/stock': typeof ShellStockIndexRoute
   '/system': typeof ShellSystemIndexRoute
+  '/table-grid': typeof ShellTableGridIndexRoute
   '/table-grid/order/$orderId': typeof ShellTableGridOrderOrderIdRoute
 }
 export interface FileRoutesById {
@@ -297,7 +297,6 @@ export interface FileRoutesById {
   '/_shell/kds': typeof ShellKdsRoute
   '/_shell/profile': typeof ShellProfileRoute
   '/_shell/reservations': typeof ShellReservationsRoute
-  '/_shell/table-grid': typeof ShellTableGridRouteWithChildren
   '/_shell/users': typeof ShellUsersRoute
   '/_shell/expense/entries': typeof ShellExpenseEntriesRoute
   '/_shell/expense/heads': typeof ShellExpenseHeadsRoute
@@ -323,6 +322,7 @@ export interface FileRoutesById {
   '/_shell/reports/': typeof ShellReportsIndexRoute
   '/_shell/stock/': typeof ShellStockIndexRoute
   '/_shell/system/': typeof ShellSystemIndexRoute
+  '/_shell/table-grid/': typeof ShellTableGridIndexRoute
   '/_shell/table-grid/order/$orderId': typeof ShellTableGridOrderOrderIdRoute
 }
 export interface FileRouteTypes {
@@ -334,7 +334,6 @@ export interface FileRouteTypes {
     | '/kds'
     | '/profile'
     | '/reservations'
-    | '/table-grid'
     | '/users'
     | '/expense/entries'
     | '/expense/heads'
@@ -360,6 +359,7 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/stock/'
     | '/system/'
+    | '/table-grid/'
     | '/table-grid/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -369,7 +369,6 @@ export interface FileRouteTypes {
     | '/kds'
     | '/profile'
     | '/reservations'
-    | '/table-grid'
     | '/users'
     | '/expense/entries'
     | '/expense/heads'
@@ -395,6 +394,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/stock'
     | '/system'
+    | '/table-grid'
     | '/table-grid/order/$orderId'
   id:
     | '__root__'
@@ -405,7 +405,6 @@ export interface FileRouteTypes {
     | '/_shell/kds'
     | '/_shell/profile'
     | '/_shell/reservations'
-    | '/_shell/table-grid'
     | '/_shell/users'
     | '/_shell/expense/entries'
     | '/_shell/expense/heads'
@@ -431,6 +430,7 @@ export interface FileRouteTypes {
     | '/_shell/reports/'
     | '/_shell/stock/'
     | '/_shell/system/'
+    | '/_shell/table-grid/'
     | '/_shell/table-grid/order/$orderId'
   fileRoutesById: FileRoutesById
 }
@@ -488,13 +488,6 @@ declare module '@tanstack/react-router' {
       path: '/reservations'
       fullPath: '/reservations'
       preLoaderRoute: typeof ShellReservationsRouteImport
-      parentRoute: typeof ShellRoute
-    }
-    '/_shell/table-grid': {
-      id: '/_shell/table-grid'
-      path: '/table-grid'
-      fullPath: '/table-grid'
-      preLoaderRoute: typeof ShellTableGridRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/users': {
@@ -658,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellSystemNotificationsRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/table-grid/': {
+      id: '/_shell/table-grid/'
+      path: '/table-grid'
+      fullPath: '/table-grid/'
+      preLoaderRoute: typeof ShellTableGridIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/tables/categories': {
       id: '/_shell/tables/categories'
       path: '/tables/categories'
@@ -674,25 +674,13 @@ declare module '@tanstack/react-router' {
     }
     '/_shell/table-grid/order/$orderId': {
       id: '/_shell/table-grid/order/$orderId'
-      path: '/order/$orderId'
+      path: '/table-grid/order/$orderId'
       fullPath: '/table-grid/order/$orderId'
       preLoaderRoute: typeof ShellTableGridOrderOrderIdRouteImport
-      parentRoute: typeof ShellTableGridRoute
+      parentRoute: typeof ShellRoute
     }
   }
 }
-
-interface ShellTableGridRouteChildren {
-  ShellTableGridOrderOrderIdRoute: typeof ShellTableGridOrderOrderIdRoute
-}
-
-const ShellTableGridRouteChildren: ShellTableGridRouteChildren = {
-  ShellTableGridOrderOrderIdRoute: ShellTableGridOrderOrderIdRoute,
-}
-
-const ShellTableGridRouteWithChildren = ShellTableGridRoute._addFileChildren(
-  ShellTableGridRouteChildren,
-)
 
 interface ShellRouteChildren {
   ShellCashSessionRoute: typeof ShellCashSessionRoute
@@ -700,7 +688,6 @@ interface ShellRouteChildren {
   ShellKdsRoute: typeof ShellKdsRoute
   ShellProfileRoute: typeof ShellProfileRoute
   ShellReservationsRoute: typeof ShellReservationsRoute
-  ShellTableGridRoute: typeof ShellTableGridRouteWithChildren
   ShellUsersRoute: typeof ShellUsersRoute
   ShellExpenseEntriesRoute: typeof ShellExpenseEntriesRoute
   ShellExpenseHeadsRoute: typeof ShellExpenseHeadsRoute
@@ -726,6 +713,8 @@ interface ShellRouteChildren {
   ShellReportsIndexRoute: typeof ShellReportsIndexRoute
   ShellStockIndexRoute: typeof ShellStockIndexRoute
   ShellSystemIndexRoute: typeof ShellSystemIndexRoute
+  ShellTableGridIndexRoute: typeof ShellTableGridIndexRoute
+  ShellTableGridOrderOrderIdRoute: typeof ShellTableGridOrderOrderIdRoute
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
@@ -734,7 +723,6 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellKdsRoute: ShellKdsRoute,
   ShellProfileRoute: ShellProfileRoute,
   ShellReservationsRoute: ShellReservationsRoute,
-  ShellTableGridRoute: ShellTableGridRouteWithChildren,
   ShellUsersRoute: ShellUsersRoute,
   ShellExpenseEntriesRoute: ShellExpenseEntriesRoute,
   ShellExpenseHeadsRoute: ShellExpenseHeadsRoute,
@@ -760,6 +748,8 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellReportsIndexRoute: ShellReportsIndexRoute,
   ShellStockIndexRoute: ShellStockIndexRoute,
   ShellSystemIndexRoute: ShellSystemIndexRoute,
+  ShellTableGridIndexRoute: ShellTableGridIndexRoute,
+  ShellTableGridOrderOrderIdRoute: ShellTableGridOrderOrderIdRoute,
 }
 
 const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
