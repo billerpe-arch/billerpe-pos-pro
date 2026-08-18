@@ -443,7 +443,7 @@ function settled(
   orderNo: number,
   tableLabel: string,
   total: number,
-  mode: Order["paymentMode"],
+  mode: NonNullable<Order["paymentMode"]>,
   businessDate: string,
   type: Order["type"] = "Dine In",
   lines: Order["lines"] = [],
