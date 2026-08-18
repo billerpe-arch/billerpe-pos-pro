@@ -25,6 +25,7 @@ import { Route as ShellMenuCategoriesRouteImport } from './routes/_shell.menu.ca
 import { Route as ShellMenuItemsRouteImport } from './routes/_shell.menu.items'
 import { Route as ShellMenuVariantsRouteImport } from './routes/_shell.menu.variants'
 import { Route as ShellOperationsIndexRouteImport } from './routes/_shell.operations.index'
+import { Route as ShellOperationsSectionRouteImport } from './routes/_shell.operations.$section'
 import { Route as ShellOperationsApprovalMatrixRouteImport } from './routes/_shell.operations.approval-matrix'
 import { Route as ShellOperationsDeliveryChargeRouteImport } from './routes/_shell.operations.delivery-charge'
 import { Route as ShellOperationsDisplayRouteImport } from './routes/_shell.operations.display'
@@ -122,6 +123,11 @@ const ShellMenuVariantsRoute = ShellMenuVariantsRouteImport.update({
 const ShellOperationsIndexRoute = ShellOperationsIndexRouteImport.update({
   id: '/operations/',
   path: '/operations/',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellOperationsSectionRoute = ShellOperationsSectionRouteImport.update({
+  id: '/operations/$section',
+  path: '/operations/$section',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellOperationsApprovalMatrixRoute =
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
   '/menu/variants': typeof ShellMenuVariantsRoute
+  '/operations/$section': typeof ShellOperationsSectionRoute
   '/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
   '/operations/display': typeof ShellOperationsDisplayRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
   '/menu/variants': typeof ShellMenuVariantsRoute
+  '/operations/$section': typeof ShellOperationsSectionRoute
   '/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
   '/operations/display': typeof ShellOperationsDisplayRoute
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/_shell/menu/categories': typeof ShellMenuCategoriesRoute
   '/_shell/menu/items': typeof ShellMenuItemsRoute
   '/_shell/menu/variants': typeof ShellMenuVariantsRoute
+  '/_shell/operations/$section': typeof ShellOperationsSectionRoute
   '/_shell/operations/approval-matrix': typeof ShellOperationsApprovalMatrixRoute
   '/_shell/operations/delivery-charge': typeof ShellOperationsDeliveryChargeRoute
   '/_shell/operations/display': typeof ShellOperationsDisplayRoute
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/menu/categories'
     | '/menu/items'
     | '/menu/variants'
+    | '/operations/$section'
     | '/operations/approval-matrix'
     | '/operations/delivery-charge'
     | '/operations/display'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/menu/categories'
     | '/menu/items'
     | '/menu/variants'
+    | '/operations/$section'
     | '/operations/approval-matrix'
     | '/operations/delivery-charge'
     | '/operations/display'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/_shell/menu/categories'
     | '/_shell/menu/items'
     | '/_shell/menu/variants'
+    | '/_shell/operations/$section'
     | '/_shell/operations/approval-matrix'
     | '/_shell/operations/delivery-charge'
     | '/_shell/operations/display'
@@ -564,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/operations'
       fullPath: '/operations/'
       preLoaderRoute: typeof ShellOperationsIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/operations/$section': {
+      id: '/_shell/operations/$section'
+      path: '/operations/$section'
+      fullPath: '/operations/$section'
+      preLoaderRoute: typeof ShellOperationsSectionRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/operations/approval-matrix': {
@@ -715,6 +734,7 @@ interface ShellRouteChildren {
   ShellMenuCategoriesRoute: typeof ShellMenuCategoriesRoute
   ShellMenuItemsRoute: typeof ShellMenuItemsRoute
   ShellMenuVariantsRoute: typeof ShellMenuVariantsRoute
+  ShellOperationsSectionRoute: typeof ShellOperationsSectionRoute
   ShellOperationsApprovalMatrixRoute: typeof ShellOperationsApprovalMatrixRoute
   ShellOperationsDeliveryChargeRoute: typeof ShellOperationsDeliveryChargeRoute
   ShellOperationsDisplayRoute: typeof ShellOperationsDisplayRoute
@@ -750,6 +770,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellMenuCategoriesRoute: ShellMenuCategoriesRoute,
   ShellMenuItemsRoute: ShellMenuItemsRoute,
   ShellMenuVariantsRoute: ShellMenuVariantsRoute,
+  ShellOperationsSectionRoute: ShellOperationsSectionRoute,
   ShellOperationsApprovalMatrixRoute: ShellOperationsApprovalMatrixRoute,
   ShellOperationsDeliveryChargeRoute: ShellOperationsDeliveryChargeRoute,
   ShellOperationsDisplayRoute: ShellOperationsDisplayRoute,

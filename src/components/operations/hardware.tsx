@@ -203,7 +203,7 @@ export function KitchenSection() {
 const emptyPrinter = (): Printer => ({
   id: "",
   name: "",
-  type: "Thermal",
+  type: "Thermal 80mm",
   connection: "LAN",
   role: "KOT",
   categories: [],
