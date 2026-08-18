@@ -197,7 +197,10 @@ interface Ctx extends State {
   startTakeAway: () => string;
   addLine: (orderId: string, input: AddLineInput) => void;
   changeQty: (orderId: string, lineId: string, delta: number) => void;
+  setLineQty: (orderId: string, lineId: string, qty: number) => void;
+  setLineNote: (orderId: string, lineId: string, note: string) => void;
   removeLine: (orderId: string, lineId: string) => void;
+
   holdOrder: (orderId: string) => void;
   saveOrder: (orderId: string) => void;
   cancelOrder: (orderId: string) => void;
@@ -566,6 +569,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             : o,
         ),
       })),
+
+    setLineQty: (orderId, lineId, qty) =>
+      patch((p) => ({
+        ...p,
+        orders: p.orders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                lines: o.lines
+                  .map((l) => (l.id === lineId ? { ...l, qty: Math.max(0, Math.round(qty)) } : l))
+                  .filter((l) => l.qty > 0),
+              }
+            : o,
+        ),
+      })),
+
+    setLineNote: (orderId, lineId, note) =>
+      patch((p) => ({
+        ...p,
+        orders: p.orders.map((o) =>
+          o.id === orderId
+            ? { ...o, lines: o.lines.map((l) => (l.id === lineId ? { ...l, note } : l)) }
+            : o,
+        ),
+      })),
+
+
 
     removeLine: (orderId, lineId) =>
       patch((p) => ({

@@ -20,6 +20,8 @@ import { Route as ShellReservationsRouteImport } from './routes/_shell.reservati
 import { Route as ShellUsersRouteImport } from './routes/_shell.users'
 import { Route as ShellExpenseEntriesRouteImport } from './routes/_shell.expense.entries'
 import { Route as ShellExpenseHeadsRouteImport } from './routes/_shell.expense.heads'
+import { Route as ShellKeyboardBillingIndexRouteImport } from './routes/_shell.keyboard-billing.index'
+import { Route as ShellKeyboardBillingOrderIdRouteImport } from './routes/_shell.keyboard-billing.$orderId'
 import { Route as ShellMenuAddonsRouteImport } from './routes/_shell.menu.addons'
 import { Route as ShellMenuCategoriesRouteImport } from './routes/_shell.menu.categories'
 import { Route as ShellMenuItemsRouteImport } from './routes/_shell.menu.items'
@@ -98,6 +100,18 @@ const ShellExpenseHeadsRoute = ShellExpenseHeadsRouteImport.update({
   path: '/expense/heads',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellKeyboardBillingIndexRoute =
+  ShellKeyboardBillingIndexRouteImport.update({
+    id: '/keyboard-billing/',
+    path: '/keyboard-billing/',
+    getParentRoute: () => ShellRoute,
+  } as any)
+const ShellKeyboardBillingOrderIdRoute =
+  ShellKeyboardBillingOrderIdRouteImport.update({
+    id: '/keyboard-billing/$orderId',
+    path: '/keyboard-billing/$orderId',
+    getParentRoute: () => ShellRoute,
+  } as any)
 const ShellMenuAddonsRoute = ShellMenuAddonsRouteImport.update({
   id: '/menu/addons',
   path: '/menu/addons',
@@ -229,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof ShellUsersRoute
   '/expense/entries': typeof ShellExpenseEntriesRoute
   '/expense/heads': typeof ShellExpenseHeadsRoute
+  '/keyboard-billing/$orderId': typeof ShellKeyboardBillingOrderIdRoute
   '/menu/addons': typeof ShellMenuAddonsRoute
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
@@ -245,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/system/notifications': typeof ShellSystemNotificationsRoute
   '/tables/categories': typeof ShellTablesCategoriesRoute
   '/tables/manage': typeof ShellTablesManageRoute
+  '/keyboard-billing/': typeof ShellKeyboardBillingIndexRoute
   '/operations/': typeof ShellOperationsIndexRoute
   '/orders/': typeof ShellOrdersIndexRoute
   '/reports/': typeof ShellReportsIndexRoute
@@ -264,6 +280,7 @@ export interface FileRoutesByTo {
   '/users': typeof ShellUsersRoute
   '/expense/entries': typeof ShellExpenseEntriesRoute
   '/expense/heads': typeof ShellExpenseHeadsRoute
+  '/keyboard-billing/$orderId': typeof ShellKeyboardBillingOrderIdRoute
   '/menu/addons': typeof ShellMenuAddonsRoute
   '/menu/categories': typeof ShellMenuCategoriesRoute
   '/menu/items': typeof ShellMenuItemsRoute
@@ -280,6 +297,7 @@ export interface FileRoutesByTo {
   '/system/notifications': typeof ShellSystemNotificationsRoute
   '/tables/categories': typeof ShellTablesCategoriesRoute
   '/tables/manage': typeof ShellTablesManageRoute
+  '/keyboard-billing': typeof ShellKeyboardBillingIndexRoute
   '/operations': typeof ShellOperationsIndexRoute
   '/orders': typeof ShellOrdersIndexRoute
   '/reports': typeof ShellReportsIndexRoute
@@ -301,6 +319,7 @@ export interface FileRoutesById {
   '/_shell/users': typeof ShellUsersRoute
   '/_shell/expense/entries': typeof ShellExpenseEntriesRoute
   '/_shell/expense/heads': typeof ShellExpenseHeadsRoute
+  '/_shell/keyboard-billing/$orderId': typeof ShellKeyboardBillingOrderIdRoute
   '/_shell/menu/addons': typeof ShellMenuAddonsRoute
   '/_shell/menu/categories': typeof ShellMenuCategoriesRoute
   '/_shell/menu/items': typeof ShellMenuItemsRoute
@@ -317,6 +336,7 @@ export interface FileRoutesById {
   '/_shell/system/notifications': typeof ShellSystemNotificationsRoute
   '/_shell/tables/categories': typeof ShellTablesCategoriesRoute
   '/_shell/tables/manage': typeof ShellTablesManageRoute
+  '/_shell/keyboard-billing/': typeof ShellKeyboardBillingIndexRoute
   '/_shell/operations/': typeof ShellOperationsIndexRoute
   '/_shell/orders/': typeof ShellOrdersIndexRoute
   '/_shell/reports/': typeof ShellReportsIndexRoute
@@ -338,6 +358,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/expense/entries'
     | '/expense/heads'
+    | '/keyboard-billing/$orderId'
     | '/menu/addons'
     | '/menu/categories'
     | '/menu/items'
@@ -354,6 +375,7 @@ export interface FileRouteTypes {
     | '/system/notifications'
     | '/tables/categories'
     | '/tables/manage'
+    | '/keyboard-billing/'
     | '/operations/'
     | '/orders/'
     | '/reports/'
@@ -373,6 +395,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/expense/entries'
     | '/expense/heads'
+    | '/keyboard-billing/$orderId'
     | '/menu/addons'
     | '/menu/categories'
     | '/menu/items'
@@ -389,6 +412,7 @@ export interface FileRouteTypes {
     | '/system/notifications'
     | '/tables/categories'
     | '/tables/manage'
+    | '/keyboard-billing'
     | '/operations'
     | '/orders'
     | '/reports'
@@ -409,6 +433,7 @@ export interface FileRouteTypes {
     | '/_shell/users'
     | '/_shell/expense/entries'
     | '/_shell/expense/heads'
+    | '/_shell/keyboard-billing/$orderId'
     | '/_shell/menu/addons'
     | '/_shell/menu/categories'
     | '/_shell/menu/items'
@@ -425,6 +450,7 @@ export interface FileRouteTypes {
     | '/_shell/system/notifications'
     | '/_shell/tables/categories'
     | '/_shell/tables/manage'
+    | '/_shell/keyboard-billing/'
     | '/_shell/operations/'
     | '/_shell/orders/'
     | '/_shell/reports/'
@@ -517,6 +543,20 @@ declare module '@tanstack/react-router' {
       path: '/expense/heads'
       fullPath: '/expense/heads'
       preLoaderRoute: typeof ShellExpenseHeadsRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/keyboard-billing/': {
+      id: '/_shell/keyboard-billing/'
+      path: '/keyboard-billing'
+      fullPath: '/keyboard-billing/'
+      preLoaderRoute: typeof ShellKeyboardBillingIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/keyboard-billing/$orderId': {
+      id: '/_shell/keyboard-billing/$orderId'
+      path: '/keyboard-billing/$orderId'
+      fullPath: '/keyboard-billing/$orderId'
+      preLoaderRoute: typeof ShellKeyboardBillingOrderIdRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/menu/addons': {
@@ -692,6 +732,7 @@ interface ShellRouteChildren {
   ShellUsersRoute: typeof ShellUsersRoute
   ShellExpenseEntriesRoute: typeof ShellExpenseEntriesRoute
   ShellExpenseHeadsRoute: typeof ShellExpenseHeadsRoute
+  ShellKeyboardBillingOrderIdRoute: typeof ShellKeyboardBillingOrderIdRoute
   ShellMenuAddonsRoute: typeof ShellMenuAddonsRoute
   ShellMenuCategoriesRoute: typeof ShellMenuCategoriesRoute
   ShellMenuItemsRoute: typeof ShellMenuItemsRoute
@@ -708,6 +749,7 @@ interface ShellRouteChildren {
   ShellSystemNotificationsRoute: typeof ShellSystemNotificationsRoute
   ShellTablesCategoriesRoute: typeof ShellTablesCategoriesRoute
   ShellTablesManageRoute: typeof ShellTablesManageRoute
+  ShellKeyboardBillingIndexRoute: typeof ShellKeyboardBillingIndexRoute
   ShellOperationsIndexRoute: typeof ShellOperationsIndexRoute
   ShellOrdersIndexRoute: typeof ShellOrdersIndexRoute
   ShellReportsIndexRoute: typeof ShellReportsIndexRoute
@@ -726,6 +768,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellUsersRoute: ShellUsersRoute,
   ShellExpenseEntriesRoute: ShellExpenseEntriesRoute,
   ShellExpenseHeadsRoute: ShellExpenseHeadsRoute,
+  ShellKeyboardBillingOrderIdRoute: ShellKeyboardBillingOrderIdRoute,
   ShellMenuAddonsRoute: ShellMenuAddonsRoute,
   ShellMenuCategoriesRoute: ShellMenuCategoriesRoute,
   ShellMenuItemsRoute: ShellMenuItemsRoute,
@@ -742,6 +785,7 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellSystemNotificationsRoute: ShellSystemNotificationsRoute,
   ShellTablesCategoriesRoute: ShellTablesCategoriesRoute,
   ShellTablesManageRoute: ShellTablesManageRoute,
+  ShellKeyboardBillingIndexRoute: ShellKeyboardBillingIndexRoute,
   ShellOperationsIndexRoute: ShellOperationsIndexRoute,
   ShellOrdersIndexRoute: ShellOrdersIndexRoute,
   ShellReportsIndexRoute: ShellReportsIndexRoute,
