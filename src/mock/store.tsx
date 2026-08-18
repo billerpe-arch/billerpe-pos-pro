@@ -331,6 +331,55 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [s.orders],
   );
 
+
+  const poTotals = useCallback((po: PurchaseOrder) => {
+    const subtotal = po.lines.reduce((sum, l) => sum + l.qty * l.rate, 0);
+    const tax = po.lines.reduce((sum, l) => sum + (l.qty * l.rate * (l.taxPct ?? 0)) / 100, 0);
+    const discount =
+      po.discountType === "percent"
+        ? (subtotal * (po.discountValue ?? 0)) / 100
+        : (po.discountValue ?? 0);
+    const grand = Math.max(0, Math.round((subtotal + tax - discount) * 100) / 100);
+    return {
+      subtotal: Math.round(subtotal * 100) / 100,
+      tax: Math.round(tax * 100) / 100,
+      discount: Math.round(discount * 100) / 100,
+      grand,
+    };
+  }, []);
+
+  const semiUnitCost = useCallback(
+    (semiId: string) => {
+      const sf = s.semiFinished.find((x) => x.id === semiId);
+      if (!sf) return 0;
+      return sf.components.reduce((sum, c) => {
+        const m = s.rawMaterials.find((x) => x.id === c.materialId);
+        return sum + (m ? m.rate * c.qty : 0);
+      }, 0);
+    },
+    [s.semiFinished, s.rawMaterials],
+  );
+
+  const movement = (
+    kind: StockMovement["kind"],
+    refType: StockMovement["refType"],
+    refId: string,
+    qty: number,
+    value: number,
+    reference: string,
+    by: string,
+  ): StockMovement => ({
+    id: uid("mv"),
+    kind,
+    refType,
+    refId,
+    qty: Math.round(qty * 1000) / 1000,
+    value: Math.round(value * 100) / 100,
+    reference,
+    at: nowStamp(),
+    by,
+  });
+
   const value: Ctx = {
     ...s,
     currentUser,
@@ -1210,6 +1259,383 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast.success("Production recorded", {
         description: `${batches} × ${sf.batchQty} ${sf.unit} of ${sf.name}`,
       });
+    },
+
+    /* ---------------- stock module ---------------- */
+    upsertUnit: (u) => {
+      patch((p) => ({
+        ...p,
+        units: p.units.some((x) => x.id === u.id)
+          ? p.units.map((x) => (x.id === u.id ? u : x))
+          : [...p.units, { ...u, id: u.id || uid("u") }],
+      }));
+      toast.success("Unit saved");
+    },
+    poTotals,
+    savePurchase: (po, opts) => {
+      const receive = opts?.receive ?? po.status === "Received";
+      const totals = poTotals(po);
+      const who = currentUser?.name ?? "Taj";
+      const isNew = !s.purchaseOrders.some((x) => x.id === po.id);
+      const id = po.id || uid("po");
+      const record: PurchaseOrder = { ...po, id, status: receive ? "Received" : po.status };
+      patch((p) => {
+        const already = p.purchaseOrders.find((x) => x.id === id);
+        const wasReceived = already?.status === "Received";
+        const applyStock = receive && !wasReceived;
+        const moves: StockMovement[] = [];
+        const rawMaterials = p.rawMaterials.map((m) => {
+          const l = record.lines.find((x) => x.materialId === m.id);
+          if (!l || !applyStock) return m;
+          const inQty = l.qty * m.conversion;
+          const inCost = l.rate / m.conversion;
+          const newStock = m.stock + inQty;
+          // weighted average costing
+          const rate =
+            newStock > 0 ? (m.stock * m.rate + inQty * inCost) / newStock : inCost;
+          moves.push(
+            movement("Purchase", "raw", m.id, inQty, l.qty * l.rate, record.poNo, who),
+          );
+          return { ...m, stock: newStock, rate: Math.round(rate * 10000) / 10000 };
+        });
+        const due = Math.max(0, totals.grand - (record.paidAmount ?? 0));
+        const prevDue = already
+          ? Math.max(0, poTotals(already).grand - (already.paidAmount ?? 0))
+          : 0;
+        return {
+          ...p,
+          purchaseOrders: already
+            ? p.purchaseOrders.map((x) => (x.id === id ? record : x))
+            : [record, ...p.purchaseOrders],
+          rawMaterials,
+          stockMovements: [...moves, ...p.stockMovements],
+          suppliers: p.suppliers.map((sup) =>
+            sup.id === record.supplierId
+              ? { ...sup, outstanding: Math.max(0, sup.outstanding - prevDue + due) }
+              : sup,
+          ),
+        };
+      });
+      log(isNew ? "Purchase Created" : "Purchase Updated", record.poNo, "—", record.status);
+      toast.success(receive ? `${record.poNo} received` : `${record.poNo} saved`, {
+        description: receive
+          ? "Stock, supplier outstanding and reports updated."
+          : "Draft saved. Stock updates on receipt.",
+      });
+    },
+    payPurchaseOrder: (id, amount) => {
+      const po = s.purchaseOrders.find((x) => x.id === id);
+      if (!po) return;
+      const grand = poTotals(po).grand;
+      const paid = Math.min(grand, (po.paidAmount ?? 0) + amount);
+      patch((p) => ({
+        ...p,
+        purchaseOrders: p.purchaseOrders.map((x) =>
+          x.id === id
+            ? {
+                ...x,
+                paidAmount: paid,
+                paymentStatus: paid >= grand ? "Paid" : paid > 0 ? "Partial" : "Unpaid",
+              }
+            : x,
+        ),
+        suppliers: p.suppliers.map((sup) =>
+          sup.id === po.supplierId
+            ? { ...sup, outstanding: Math.max(0, sup.outstanding - amount) }
+            : sup,
+        ),
+      }));
+      toast.success("Payment recorded", { description: `${po.poNo} · ₹${amount}` });
+    },
+    cancelPurchaseOrder: (id) => {
+      const po = s.purchaseOrders.find((x) => x.id === id);
+      if (!po) return;
+      const due = Math.max(0, poTotals(po).grand - (po.paidAmount ?? 0));
+      patch((p) => ({
+        ...p,
+        purchaseOrders: p.purchaseOrders.map((x) =>
+          x.id === id ? { ...x, status: "Cancelled" } : x,
+        ),
+        suppliers: p.suppliers.map((sup) =>
+          sup.id === po.supplierId
+            ? { ...sup, outstanding: Math.max(0, sup.outstanding - due) }
+            : sup,
+        ),
+      }));
+      toast.success(`${po.poNo} cancelled`);
+    },
+    saveStockCount: (rows, note) => {
+      const who = currentUser?.name ?? "Taj";
+      const changed = rows.filter((r) => {
+        const m = s.rawMaterials.find((x) => x.id === r.materialId);
+        return m && Math.abs(m.stock - r.countedQty) > 0.0001;
+      });
+      if (!changed.length) {
+        toast.info("Nothing to save", { description: "No counted quantity differs from system stock." });
+        return;
+      }
+      patch((p) => {
+        const adjustments: StockAdjustment[] = [];
+        const moves: StockMovement[] = [];
+        const rawMaterials = p.rawMaterials.map((m) => {
+          const r = changed.find((x) => x.materialId === m.id);
+          if (!r) return m;
+          const variance = r.countedQty - m.stock;
+          adjustments.push({
+            id: uid("sa"),
+            materialId: m.id,
+            systemQty: m.stock,
+            countedQty: r.countedQty,
+            variance,
+            value: Math.round(variance * m.rate * 100) / 100,
+            date: todayLabel,
+            by: who,
+            ...(note ? { note } : {}),
+          });
+          moves.push(
+            movement("Adjustment", "raw", m.id, variance, variance * m.rate, note ?? "Physical count", who),
+          );
+          return { ...m, stock: r.countedQty };
+        });
+        return {
+          ...p,
+          rawMaterials,
+          stockAdjustments: [...adjustments, ...p.stockAdjustments],
+          stockMovements: [...moves, ...p.stockMovements],
+        };
+      });
+      log("Stock Reconciled", `${changed.length} materials`, "System stock", "Physical count");
+      toast.success(`${changed.length} row${changed.length > 1 ? "s" : ""} reconciled`, {
+        description: "Current stock and adjustment history updated.",
+      });
+    },
+    addWastageBatch: (rows) => {
+      const who = currentUser?.name ?? "Taj";
+      const valid = rows.filter((r) => r.materialId && r.qty > 0);
+      if (!valid.length) {
+        toast.error("Add at least one wastage row");
+        return;
+      }
+      patch((p) => {
+        const moves: StockMovement[] = [];
+        const entries: Wastage[] = [];
+        const rawMaterials = p.rawMaterials.map((m) => {
+          const mine = valid.filter((r) => r.materialId === m.id);
+          if (!mine.length) return m;
+          let stock = m.stock;
+          mine.forEach((r) => {
+            stock = Math.max(0, stock - r.qty);
+            entries.push({
+              id: uid("w"),
+              materialId: m.id,
+              qty: r.qty,
+              reason: r.reason || "Not specified",
+              date: todayLabel,
+              recordedBy: who,
+              cost: Math.round(r.qty * m.rate * 100) / 100,
+              ...(r.notes ? { notes: r.notes } : {}),
+            });
+            moves.push(movement("Wastage", "raw", m.id, -r.qty, -r.qty * m.rate, r.reason || "Wastage", who));
+          });
+          return { ...m, stock };
+        });
+        return {
+          ...p,
+          rawMaterials,
+          wastages: [...entries, ...p.wastages],
+          stockMovements: [...moves, ...p.stockMovements],
+        };
+      });
+      toast.success(`Wastage posted for ${valid.length} item${valid.length > 1 ? "s" : ""}`, {
+        description: "Stock reduced and cost captured.",
+      });
+    },
+    upsertSemiFinished: (sf) => {
+      patch((p) => ({
+        ...p,
+        semiFinished: p.semiFinished.some((x) => x.id === sf.id)
+          ? p.semiFinished.map((x) => (x.id === sf.id ? sf : x))
+          : [...p.semiFinished, { ...sf, id: sf.id || uid("sf") }],
+      }));
+      toast.success("Semi-finished item saved");
+    },
+    removeSemiFinished: (id) => {
+      patch((p) => ({ ...p, semiFinished: p.semiFinished.filter((x) => x.id !== id) }));
+      toast.success("Semi-finished item deleted");
+    },
+    semiUnitCost,
+    recordProduction: (semiId, qty, notes) => {
+      const sf = s.semiFinished.find((x) => x.id === semiId);
+      if (!sf || qty <= 0) return;
+      const who = currentUser?.name ?? "Taj";
+      const cost = semiUnitCost(semiId) * qty;
+      patch((p) => {
+        const moves: StockMovement[] = [];
+        const rawMaterials = p.rawMaterials.map((m) => {
+          const c = sf.components.find((x) => x.materialId === m.id);
+          if (!c) return m;
+          const used = c.qty * qty;
+          moves.push(movement("Production Out", "raw", m.id, -used, -used * m.rate, sf.name, who));
+          return { ...m, stock: Math.max(0, m.stock - used) };
+        });
+        moves.push(movement("Production In", "semi", sf.id, qty, cost, "Production run", who));
+        return {
+          ...p,
+          rawMaterials,
+          semiFinished: p.semiFinished.map((x) =>
+            x.id === semiId ? { ...x, stock: Math.round((x.stock + qty) * 1000) / 1000 } : x,
+          ),
+          productionRuns: [
+            {
+              id: uid("pr"),
+              semiId,
+              qty,
+              cost: Math.round(cost * 100) / 100,
+              at: nowStamp(),
+              by: who,
+              ...(notes ? { notes } : {}),
+            },
+            ...p.productionRuns,
+          ],
+          stockMovements: [...moves, ...p.stockMovements],
+        };
+      });
+      log("Production Recorded", sf.name, "—", `${qty} ${sf.unit}`);
+      toast.success("Production recorded", {
+        description: `${qty} ${sf.unit} of ${sf.name} · raw materials consumed`,
+      });
+    },
+    upsertRecipe: (r) => {
+      patch((p) => ({
+        ...p,
+        recipes: p.recipes.some((x) => x.id === r.id)
+          ? p.recipes.map((x) => (x.id === r.id ? r : x))
+          : [...p.recipes, { ...r, id: r.id || uid("rc") }],
+      }));
+      toast.success("Recipe saved", { description: r.itemName });
+    },
+    removeRecipe: (id) => {
+      patch((p) => ({ ...p, recipes: p.recipes.filter((x) => x.id !== id) }));
+      toast.success("Recipe deleted");
+    },
+    recipeGroupCost: (g) =>
+      Math.round(
+        g.lines.reduce((sum, l) => {
+          if (l.type === "raw") {
+            const m = s.rawMaterials.find((x) => x.id === l.refId);
+            return sum + (m ? m.rate * l.qty : 0);
+          }
+          return sum + semiUnitCost(l.refId) * l.qty;
+        }, 0) * 100,
+      ) / 100,
+    createRequisition: (items, remarks) => {
+      const valid = items.filter((i) => i.orderedQty > 0);
+      if (!valid.length) {
+        toast.error("Add at least one material");
+        return;
+      }
+      const no = `REQ-2026-${String(
+        Math.max(
+          ...s.requisitions.map((r) => Number(r.reqNo.split("-").pop())).filter((n) => !Number.isNaN(n)),
+          0,
+        ) + 1,
+      ).padStart(3, "0")}`;
+      patch((p) => ({
+        ...p,
+        requisitions: [
+          {
+            id: uid("fr"),
+            reqNo: no,
+            date: todayLabel,
+            status: "Pending",
+            raisedBy: currentUser?.name ?? "Taj",
+            items: valid,
+            ...(remarks ? { remarks } : {}),
+          },
+          ...p.requisitions,
+        ],
+      }));
+      toast.success("Requisition placed", { description: `${no} · awaiting merchant approval` });
+    },
+    setRequisitionStatus: (id, status) => {
+      patch((p) => ({
+        ...p,
+        requisitions: p.requisitions.map((r) => (r.id === id ? { ...r, status } : r)),
+      }));
+      toast.success(`Requisition ${status.toLowerCase()}`);
+    },
+    setRequisitionQty: (id, materialId, qty) =>
+      patch((p) => ({
+        ...p,
+        requisitions: p.requisitions.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                items: r.items.map((i) =>
+                  i.materialId === materialId ? { ...i, orderedQty: Math.max(0, qty) } : i,
+                ),
+              }
+            : r,
+        ),
+      })),
+    removeRequisition: (id) => {
+      patch((p) => ({ ...p, requisitions: p.requisitions.filter((r) => r.id !== id) }));
+      toast.success("Requisition deleted");
+    },
+    fulfilRequisition: (id) => {
+      const req = s.requisitions.find((r) => r.id === id);
+      if (!req || req.purchaseOrderId) return;
+      const poId = uid("po");
+      const poNo = `PO-2026-${String(
+        Math.max(
+          ...s.purchaseOrders
+            .map((x) => Number(x.poNo.split("-").pop()))
+            .filter((n) => !Number.isNaN(n)),
+          0,
+        ) + 1,
+      ).padStart(3, "0")}`;
+      const who = currentUser?.name ?? "Taj";
+      const supplierId = s.suppliers[0]?.id ?? "s1";
+      const po: PurchaseOrder = {
+        id: poId,
+        poNo,
+        supplierId,
+        date: todayLabel,
+        status: "Received",
+        paymentStatus: "Unpaid",
+        paidAmount: 0,
+        requisitionId: req.id,
+        lines: req.items.map((i) => ({
+          materialId: i.materialId,
+          qty: i.approvedQty ?? i.orderedQty,
+          rate: i.unitPrice,
+          taxPct: 5,
+        })),
+      };
+      const due = poTotals(po).grand;
+      patch((p) => {
+        const moves: StockMovement[] = [];
+        const rawMaterials = p.rawMaterials.map((m) => {
+          const l = po.lines.find((x) => x.materialId === m.id);
+          if (!l) return m;
+          const inQty = l.qty * m.conversion;
+          moves.push(movement("Purchase", "raw", m.id, inQty, l.qty * l.rate, poNo, who));
+          return { ...m, stock: m.stock + inQty };
+        });
+        return {
+          ...p,
+          rawMaterials,
+          purchaseOrders: [po, ...p.purchaseOrders],
+          stockMovements: [...moves, ...p.stockMovements],
+          requisitions: p.requisitions.map((r) =>
+            r.id === id ? { ...r, status: "Delivered", purchaseOrderId: poId } : r,
+          ),
+          suppliers: p.suppliers.map((sup) =>
+            sup.id === supplierId ? { ...sup, outstanding: sup.outstanding + due } : sup,
+          ),
+        };
+      });
+      toast.success("Requisition fulfilled", { description: `${poNo} created and stock received` });
     },
 
     setConnection: (state) => {
