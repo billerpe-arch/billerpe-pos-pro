@@ -343,9 +343,9 @@ export function KeyboardDisplay({ orderId }: { orderId: string }) {
             KB
           </span>
           <div className="leading-tight">
-            <p className="text-[13px] font-semibold">{RESTAURANT.name}</p>
-            <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-              Keyboard billing
+            <p className="text-[13px] font-semibold">Keyboard Billing</p>
+            <p className="num text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              {RESTAURANT.name}
             </p>
           </div>
         </div>
