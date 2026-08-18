@@ -178,16 +178,44 @@ export interface Reservation {
   note?: string;
 }
 
+export interface StockUnit {
+  id: string;
+  unitName: string;
+  shortName: string;
+}
+
 export interface RawMaterial {
   id: string;
   name: string;
+  /** consumption unit (usage unit) */
   unit: string;
+  /** purchase unit */
   purchaseUnit: string;
+  /** consumption units per 1 purchase unit */
   conversion: number;
+  /** stock on hand, in consumption units */
   stock: number;
+  /** minimum / reorder level, in consumption units */
   reorderLevel: number;
+  /** weighted average cost per consumption unit */
   rate: number;
   category: string;
+  minStockEnabled?: boolean;
+}
+
+export type IngredientType = "raw" | "semi";
+
+export interface RecipeLine {
+  type: IngredientType;
+  refId: string;
+  qty: number;
+}
+
+export interface RecipeGroup {
+  key: string;
+  label: string;
+  kind: "base" | "variant" | "addon";
+  lines: RecipeLine[];
 }
 
 export interface Recipe {
@@ -196,15 +224,29 @@ export interface Recipe {
   yieldQty: number;
   yieldUnit: string;
   components: { materialId: string; qty: number }[];
+  menuItemId?: string;
+  groups?: RecipeGroup[];
 }
 
 export interface SemiFinished {
   id: string;
   name: string;
   unit: string;
+  /** BOM is expressed per 1 unit produced; batchQty is the suggested run size */
   batchQty: number;
   stock: number;
   components: { materialId: string; qty: number }[];
+  minStock?: number;
+}
+
+export interface ProductionRun {
+  id: string;
+  semiId: string;
+  qty: number;
+  cost: number;
+  notes?: string;
+  at: string;
+  by: string;
 }
 
 export interface Supplier {
@@ -216,13 +258,29 @@ export interface Supplier {
   outstanding: number;
 }
 
+export interface PurchaseLine {
+  materialId: string;
+  /** quantity in purchase units */
+  qty: number;
+  /** rate per purchase unit */
+  rate: number;
+  taxPct?: number;
+}
+
 export interface PurchaseOrder {
   id: string;
   poNo: string;
   supplierId: string;
   date: string;
-  status: "Draft" | "Ordered" | "Received" | "Partially Received";
-  lines: { materialId: string; qty: number; rate: number }[];
+  status: "Draft" | "Ordered" | "Received" | "Partially Received" | "Cancelled";
+  lines: PurchaseLine[];
+  invoiceNo?: string;
+  gstin?: string;
+  paymentStatus?: "Unpaid" | "Partial" | "Paid";
+  paidAmount?: number;
+  discountType?: "flat" | "percent";
+  discountValue?: number;
+  requisitionId?: string;
 }
 
 export interface Wastage {
@@ -232,7 +290,63 @@ export interface Wastage {
   reason: string;
   date: string;
   recordedBy: string;
+  notes?: string;
+  cost?: number;
 }
+
+export interface StockAdjustment {
+  id: string;
+  materialId: string;
+  systemQty: number;
+  countedQty: number;
+  variance: number;
+  value: number;
+  date: string;
+  by: string;
+  note?: string;
+}
+
+export type MovementKind =
+  | "Purchase"
+  | "Wastage"
+  | "Adjustment"
+  | "Production In"
+  | "Production Out"
+  | "Sale";
+
+export interface StockMovement {
+  id: string;
+  kind: MovementKind;
+  /** raw material id or semi-finished id */
+  refType: IngredientType;
+  refId: string;
+  /** signed quantity in the item's own unit */
+  qty: number;
+  value: number;
+  reference: string;
+  at: string;
+  by: string;
+}
+
+export type RequisitionStatus =
+  | "Pending"
+  | "Accepted"
+  | "Out for delivery"
+  | "Delivered"
+  | "Rejected";
+
+export interface FranchiseRequisition {
+  id: string;
+  reqNo: string;
+  date: string;
+  status: RequisitionStatus;
+  items: { materialId: string; orderedQty: number; approvedQty?: number; unitPrice: number }[];
+  remarks?: string;
+  purchaseOrderId?: string;
+  raisedBy: string;
+}
+
+
 
 export interface ExpenseHead {
   id: string;
