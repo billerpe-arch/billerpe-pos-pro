@@ -40,7 +40,7 @@ export function CurrentStockReport() {
         <StatCard label="Semi-finished value" value={<Money value={Math.round(semiValue)} />} tone="info" />
         <StatCard
           label="Below minimum"
-          value={rows.filter((m) => healthOf(m.stock, m.reorderLevel) !== "healthy").length}
+          value={rows.filter((m) => healthOf(m.stock, m.reorderLevel) !== "Healthy").length}
           tone="warning"
         />
       </div>
