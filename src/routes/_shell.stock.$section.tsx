@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Boxes } from "lucide-react";
+import type { ComponentType } from "react";
 
 import { EmptyState, Page, PageHeader, PendingDecision } from "@/components/kit";
 import {
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/_shell/stock/$section")({
   component: StockSectionPage,
 });
 
-const SCREENS: Record<string, () => JSX.Element> = {
+const SCREENS: Record<string, ComponentType> = {
   "raw-materials": RawMaterialsScreen,
   units: UnitsScreen,
   suppliers: SuppliersScreen,
