@@ -570,6 +570,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ),
       })),
 
+    setLineQty: (orderId, lineId, qty) =>
+      patch((p) => ({
+        ...p,
+        orders: p.orders.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                lines: o.lines
+                  .map((l) => (l.id === lineId ? { ...l, qty: Math.max(0, Math.round(qty)) } : l))
+                  .filter((l) => l.qty > 0),
+              }
+            : o,
+        ),
+      })),
+
+    setLineNote: (orderId, lineId, note) =>
+      patch((p) => ({
+        ...p,
+        orders: p.orders.map((o) =>
+          o.id === orderId
+            ? { ...o, lines: o.lines.map((l) => (l.id === lineId ? { ...l, note } : l)) }
+            : o,
+        ),
+      })),
+
+
+
     removeLine: (orderId, lineId) =>
       patch((p) => ({
         ...p,
